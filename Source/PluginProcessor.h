@@ -3,6 +3,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <atomic>
 #include "DSP/AccordionVoice.h"
 
 class BellowsAudioProcessor final : public juce::AudioProcessor
@@ -48,6 +49,7 @@ private:
     juce::dsp::IIR::Filter<float> bodyFilterRight;
     juce::Random noise;
     float airNoiseState = 0.0f;
+    std::atomic<bool> dspPrepared { false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BellowsAudioProcessor)
 };
