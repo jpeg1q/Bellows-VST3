@@ -53,10 +53,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if (gh release view v0.1.1) {
-            gh release upload v0.1.1 Bellows-VST3-Windows-x64.zip --clobber
+          if (gh release view v0.1.2) {
+            gh release upload v0.1.2 Bellows-VST3-Windows-x64.zip --clobber
           } else {
-            Write-Host "v0.1.1 release does not exist yet; keeping the workflow artifact."
+            Write-Host "v0.1.2 release does not exist yet; keeping the workflow artifact."
           }
 
   release:
