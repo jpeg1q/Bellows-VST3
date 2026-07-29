@@ -61,6 +61,19 @@ if(BELLOWS_BUILD_PLUGIN)
         juce::juce_dsp
     )
 
+    if(BELLOWS_BUILD_TESTS)
+        add_executable(BellowsPluginAudioSmoke
+            Tests/PluginAudioSmoke.cpp
+        )
+        target_include_directories(BellowsPluginAudioSmoke PRIVATE Source)
+        target_link_libraries(BellowsPluginAudioSmoke PRIVATE
+            Bellows
+            juce::juce_audio_utils
+            juce::juce_dsp
+        )
+        add_test(NAME BellowsPluginAudioSmoke COMMAND BellowsPluginAudioSmoke)
+    endif()
+
     if(MSVC)
         target_compile_options(Bellows PRIVATE /W4 /permissive-)
     else()
