@@ -45,6 +45,7 @@ void BellowsAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 
     reverb.reset();
     reverb.prepare(spec);
+    highPass.prepare(spec);
     highPass.reset();
     bodyFilterLeft.reset();
     bodyFilterRight.reset();
