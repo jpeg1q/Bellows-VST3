@@ -30,6 +30,11 @@ BellowsAudioProcessor::BellowsAudioProcessor()
 
 void BellowsAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
+    dspPrepared.store(false, std::memory_order_release);
+
+    if (sampleRate <= 0.0 || samplesPerBlock <= 0)
+        return;
+
     synth.setCurrentPlaybackSampleRate(sampleRate);
 
     const juce::dsp::ProcessSpec spec {
@@ -47,10 +52,12 @@ void BellowsAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
     highPass.state = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 34.0);
     bodyFilterLeft.coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 310.0, 0.75f, 1.0f);
     bodyFilterRight.coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 310.0, 0.75f, 1.0f);
+    dspPrepared.store(true, std::memory_order_release);
 }
 
 void BellowsAudioProcessor::releaseResources()
 {
+    dspPrepared.store(false, std::memory_order_release);
 }
 
 bool BellowsAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
@@ -63,6 +70,13 @@ void BellowsAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 {
     juce::ScopedNoDenormals noDenormals;
     buffer.clear();
+
+    if (buffer.getNumSamples() <= 0 || buffer.getNumChannels() <= 0)
+        return;
+
+    if (! dspPrepared.load(std::memory_order_acquire))
+        return;
+
     keyboardState.processNextMidiBuffer(midi, 0, buffer.getNumSamples(), true);
     synth.renderNextBlock(buffer, midi, 0, buffer.getNumSamples());
 
