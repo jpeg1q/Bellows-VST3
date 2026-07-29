@@ -1,0 +1,11 @@
+/build*/
+/.cache/
+/.vs/
+/.vscode/
+CMakeUserPresets.json
+*.wav
+*.zip
+*.user
+*.suo
+*.VC.db
+.DS_Store
