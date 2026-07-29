@@ -1,0 +1,70 @@
+name: Build and validate
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core-dsp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure dependency-free checks
+        run: cmake -S . -B build-core -G Ninja -DBELLOWS_BUILD_PLUGIN=OFF -DBELLOWS_BUILD_TESTS=ON -DBELLOWS_BUILD_DEMO=ON
+      - name: Build
+        run: cmake --build build-core --parallel
+      - name: Test
+        run: ctest --test-dir build-core --output-on-failure
+      - name: Render demo
+        run: ./build-core/BellowsRenderDemo Bellows-demo.wav
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bellows-demo-audio
+          path: Bellows-demo.wav
+
+  windows-vst3:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -A x64 -DBELLOWS_BUILD_PLUGIN=ON -DBELLOWS_BUILD_TESTS=ON -DBELLOWS_BUILD_DEMO=ON
+      - name: Build release
+        run: cmake --build build --config Release --parallel
+      - name: Test core DSP
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Package VST3
+        shell: pwsh
+        run: Compress-Archive -Path "build/Bellows_artefacts/Release/VST3/Bellows.vst3" -DestinationPath "Bellows-VST3-Windows-x64.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Bellows-VST3-Windows-x64
+          path: Bellows-VST3-Windows-x64.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [core-dsp, windows-vst3]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Publish versioned release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            release-assets/Bellows-VST3-Windows-x64.zip \
+            release-assets/Bellows-demo.wav \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "Bellows ${GITHUB_REF_NAME}" \
+            --generate-notes \
+            --verify-tag
