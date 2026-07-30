@@ -45,12 +45,11 @@ void BellowsAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 
     reverb.reset();
     reverb.prepare(spec);
+    highPass.state = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 34.0);
     highPass.prepare(spec);
     highPass.reset();
     bodyFilterLeft.reset();
     bodyFilterRight.reset();
-
-    highPass.state = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 34.0);
     bodyFilterLeft.coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 310.0, 0.75f, 1.0f);
     bodyFilterRight.coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 310.0, 0.75f, 1.0f);
     dspPrepared.store(true, std::memory_order_release);
