@@ -65,7 +65,10 @@ if(BELLOWS_BUILD_PLUGIN)
         add_executable(BellowsPluginAudioSmoke
             Tests/PluginAudioSmoke.cpp
         )
-        target_include_directories(BellowsPluginAudioSmoke PRIVATE Source)
+        target_include_directories(BellowsPluginAudioSmoke PRIVATE
+            Source
+            "${CMAKE_CURRENT_BINARY_DIR}/Bellows_artefacts/JuceLibraryCode"
+        )
         target_link_libraries(BellowsPluginAudioSmoke PRIVATE
             Bellows
             juce::juce_audio_utils
